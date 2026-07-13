@@ -1,0 +1,735 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naftal GPL — {{ realisation.action.nom }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --orange:#f5821f; --orange-light:#ffa54f; --orange-pale:#fff4ec; --orange-glow:rgba(245,130,31,0.15);
+            --green:#0a6e3a; --red:#dc2626; --text-dark:#1a1a2e; --text-mid:#444; --text-light:#888; --white:#fff;
+            --card-shadow:0 8px 32px rgba(245,130,31,0.10); --radius-lg:20px; --radius-md:14px; --radius-sm:8px;
+        }
+        *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+       body { font-family:'Inter',sans-serif; background:var(--orange-pale); color:var(--text-dark); }
+        .icon { display:inline-flex; align-items:center; justify-content:center; color:var(--orange); flex-shrink:0; }
+        .icon svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+        .header {
+            position:fixed; top:0; left:0; right:0; z-index:1000; padding:0 48px; height:68px;
+            display:flex; align-items:center; justify-content:space-between;
+            background:rgba(255,255,255,0.6); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+            border-bottom:1px solid rgba(245,130,31,0.15); box-shadow:0 4px 24px rgba(0,0,0,0.06);
+        }
+        .header-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .brand-dot { width:10px; height:10px; background:var(--orange); border-radius:50%; }
+        .brand-name { font-size:18px; font-weight:800; color:var(--orange); }
+        .brand-sub { font-size:11px; color:var(--text-light); }
+        .header-nav { display:flex; gap:4px; }
+        .nav-link { padding:8px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; color:var(--text-mid); text-decoration:none; }
+        .nav-link:hover, .nav-link.active { background:var(--orange-glow); color:var(--orange); }
+        .nav-link.cta { background:var(--orange); color:#fff; font-weight:600; }
+        .user-chip { display:flex; align-items:center; gap:8px; padding:6px 14px 6px 8px; background:var(--orange-pale); border-radius:20px; font-size:13px; color:var(--orange); text-decoration:none; }
+        .user-avatar { width:26px; height:26px; background:var(--orange); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; }
+
+        .page-wrap { margin-top:68px; padding:48px 80px; background:var(--orange-pale); min-height:80vh; }
+        .breadcrumb { font-size:13px; color:var(--text-light); margin-bottom:24px; }
+        .breadcrumb a { color:var(--orange); text-decoration:none; font-weight:600; }
+
+        .messages { margin-bottom:20px; }
+        .msg { padding:12px 18px; border-radius:var(--radius-sm); font-size:13px; margin-bottom:8px; font-weight:500; }
+        .msg.success { background:rgba(10,110,58,0.1); color:var(--green); }
+        .msg.error { background:rgba(220,38,38,0.08); color:var(--red); }
+        .msg.warning { background:rgba(245,130,31,0.12); color:var(--orange); }
+
+        /* ═══ CARTE PRINCIPALE — UNE SEULE box verre, photo bord-à-bord à gauche ═══ */
+        .hero-backdrop {
+    position: relative;
+    overflow: hidden;
+    padding: 24px 80px;
+    margin-bottom: 0;
+    background-image: url("{% static 'img/event.png' %}");
+    background-size: cover;
+    background-position: center;
+    /* ── Full-bleed : sort la photo du padding de .page-wrap pour couvrir tout l'écran ── */
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+}
+        .hero-backdrop::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(245,130,31,0.5), rgba(26,26,46,0.55));
+        }
+
+        .detail-hero-card {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            background: rgba(255, 255, 255, 0.45);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12.5px);
+            -webkit-backdrop-filter: blur(12.5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .detail-hero-img-wrap { position: relative; min-height: 100%; }
+        .detail-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .detail-img-placeholder {
+            width: 100%; height: 100%; min-height: 380px;
+            background: rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .detail-img-placeholder .icon svg { width: 48px; height: 48px; }
+
+        .detail-hero-info { padding: 36px; }
+
+        .badge-row { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+        .badge { display:inline-flex; padding:4px 12px; background:var(--orange-pale); color:var(--orange); border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+
+        /* ═══ VOYANT LUMINEUX ═══ */
+        .statut-chip { display:inline-flex; align-items:center; gap:7px; padding:4px 12px 4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+        .statut-chip.rouge { background:rgba(220,38,38,0.08); color:var(--red); }
+        .statut-chip.orange { background:rgba(245,130,31,0.12); color:var(--orange); }
+        .statut-chip.vert { background:rgba(10,110,58,0.1); color:var(--green); }
+        .statut-dot { width:8px; height:8px; border-radius:50%; position:relative; }
+        .statut-dot.rouge { background:var(--red); box-shadow:0 0 0 0 rgba(220,38,38,0.6); animation:pulse-rouge 1.6s infinite; }
+        .statut-dot.orange { background:var(--orange); box-shadow:0 0 0 0 rgba(245,130,31,0.6); animation:pulse-orange 1.6s infinite; }
+        .statut-dot.vert { background:var(--green); box-shadow:0 0 0 0 rgba(10,110,58,0.6); animation:pulse-vert 1.6s infinite; }
+        @keyframes pulse-rouge { 0%{box-shadow:0 0 0 0 rgba(220,38,38,0.6);} 70%{box-shadow:0 0 0 8px rgba(220,38,38,0);} 100%{box-shadow:0 0 0 0 rgba(220,38,38,0);} }
+        @keyframes pulse-orange { 0%{box-shadow:0 0 0 0 rgba(245,130,31,0.6);} 70%{box-shadow:0 0 0 8px rgba(245,130,31,0);} 100%{box-shadow:0 0 0 0 rgba(245,130,31,0);} }
+        @keyframes pulse-vert { 0%{box-shadow:0 0 0 0 rgba(10,110,58,0.6);} 70%{box-shadow:0 0 0 8px rgba(10,110,58,0);} 100%{box-shadow:0 0 0 0 rgba(10,110,58,0);} }
+
+        .info-title { font-size:26px; font-weight:800; margin-bottom:16px; letter-spacing:-0.5px; }
+        .info-row { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--text-mid); margin-bottom:12px; }
+        .info-row strong { color:var(--text-dark); }
+
+        .actions-row { display:flex; gap:12px; margin-top:20px; flex-wrap:wrap; }
+        .btn-toggle {
+            display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:24px;
+            font-size:13px; font-weight:600; cursor:pointer; border:none; font-family:inherit;
+            transition:all 0.25s ease;
+        }
+        .btn-toggle.edit { background:var(--orange-pale); color:var(--orange); }
+        .btn-toggle.edit:hover { background:var(--orange); color:#fff; }
+        .btn-toggle.edit .icon { color:inherit; }
+        .btn-toggle.track { background:rgba(10,110,58,0.08); color:var(--green); }
+        .btn-toggle.track:hover { background:var(--green); color:#fff; }
+        .btn-toggle.track .icon { color:inherit; }
+
+        .langs-table { width:100%; border-collapse:collapse; margin-top:16px; }
+        .langs-table th, .langs-table td { padding:10px 8px; font-size:13px; text-align:left; border-bottom:1px solid rgba(0,0,0,0.06); }
+        .langs-table th { color:var(--text-light); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.5px; }
+        .langs-table input {
+            width:90px; padding:6px 10px; border:2px solid rgba(245,130,31,0.2); border-radius:var(--radius-sm);
+            font-family:inherit; font-size:13px; outline:none;
+        }
+        .langs-table input:focus { border-color:var(--orange); }
+
+        /* ═══ SECTIONS COULISSANTES ═══ */
+        .slide-section {
+            max-height:0; overflow:hidden; transition:max-height 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease, margin 0.4s ease;
+            opacity:0; margin-top:0;
+        }
+        .slide-section.open { max-height:1600px; opacity:1; margin-top:24px; }
+        .slide-card {
+            background: rgba(255, 244, 236, 0.55);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(245,130,31,0.14);
+            backdrop-filter: blur(12.5px);
+            -webkit-backdrop-filter: blur(12.5px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 32px;
+        }
+        .section-title { font-size:16px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+
+        .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+        .form-group { display:flex; flex-direction:column; gap:6px; }
+        .form-group.full { grid-column:1/-1; }
+        .form-group label { font-size:12px; font-weight:600; color:var(--text-mid); }
+        .form-group input, .form-group select {
+            padding:10px 14px; border:2px solid rgba(245,130,31,0.2); border-radius:var(--radius-sm);
+            font-family:inherit; font-size:14px; outline:none; background:#fff;
+        }
+        .form-group input:focus, .form-group select:focus { border-color:var(--orange); }
+
+        .btn-primary {
+            padding:12px 26px; background:var(--orange); color:#fff; border:none; border-radius:var(--radius-md);
+            font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:background 0.2s;
+        }
+        .btn-primary:hover { background:#e0711a; }
+        .btn-primary.green { background:var(--green); }
+        .btn-primary.green:hover { background:#085c30; }
+
+        .distrib-table { width:100%; border-collapse:collapse; margin-top:20px; }
+        .distrib-table th, .distrib-table td { padding:10px 8px; font-size:13px; text-align:left; border-bottom:1px solid rgba(0,0,0,0.06); }
+        .distrib-table th { color:var(--text-light); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.5px; }
+        .empty-note { font-size:13px; color:var(--text-light); padding:12px 0; }
+
+        .footer { background:#1a1a2e; padding:40px 80px; display:flex; justify-content:space-between; align-items:center; }
+        .footer-brand { font-size:16px; font-weight:800; color:var(--orange); }
+        .footer-copy { font-size:13px; color:rgba(255,255,255,0.3); }
+        .footer-user { font-size:13px; color:rgba(255,255,255,0.5); }
+
+        .btn-event-link {
+            display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600;
+            color:var(--orange); text-decoration:none; padding:4px 10px; background:var(--orange-pale);
+            border-radius:14px; transition:background 0.2s;
+        }
+        .btn-event-link:hover { background:var(--orange); color:#fff; }
+
+        /* ═══ CAROUSEL 3D ÉVÉNEMENTS — fond étoilé orange, bord à bord ═══ */
+   .events-carousel-section {
+    position: relative;
+    margin-top: 32px;
+    background: linear-gradient(160deg, #1a1a2e 0%, #2b1a12 55%, #1a1a2e 100%);
+    box-shadow: 0 20px 50px rgba(245,130,31,0.18);
+    padding: 28px 0 32px;
+    overflow: hidden;
+    /* ── Full-bleed : même technique que pour hero-backdrop ── */
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+}
+        .events-carousel-section::before,
+        .events-carousel-section::after {
+            content: '';
+            position: absolute; inset: 0;
+            pointer-events: none;
+            background-repeat: repeat;
+        }
+        .events-carousel-section::before {
+            background-image:
+                radial-gradient(1.6px 1.6px at 10% 20%, rgba(245,130,31,0.9), transparent),
+                radial-gradient(1.2px 1.2px at 30% 70%, rgba(255,165,79,0.7), transparent),
+                radial-gradient(1.8px 1.8px at 55% 15%, rgba(245,130,31,0.8), transparent),
+                radial-gradient(1.3px 1.3px at 75% 55%, rgba(255,165,79,0.6), transparent),
+                radial-gradient(1.6px 1.6px at 90% 30%, rgba(245,130,31,0.9), transparent),
+                radial-gradient(1.2px 1.2px at 15% 85%, rgba(255,165,79,0.7), transparent),
+                radial-gradient(1.5px 1.5px at 45% 45%, rgba(245,130,31,0.7), transparent),
+                radial-gradient(1.4px 1.4px at 65% 90%, rgba(255,165,79,0.6), transparent),
+                radial-gradient(1.7px 1.7px at 95% 75%, rgba(245,130,31,0.85), transparent),
+                radial-gradient(1.3px 1.3px at 5% 50%, rgba(255,165,79,0.6), transparent);
+            background-size: 100% 100%;
+            animation: stars-twinkle-a 3.5s ease-in-out infinite alternate;
+        }
+        .events-carousel-section::after {
+            background-image:
+                radial-gradient(1.4px 1.4px at 22% 40%, rgba(245,130,31,0.6), transparent),
+                radial-gradient(1.7px 1.7px at 40% 10%, rgba(255,165,79,0.8), transparent),
+                radial-gradient(1.2px 1.2px at 60% 65%, rgba(245,130,31,0.5), transparent),
+                radial-gradient(1.6px 1.6px at 80% 20%, rgba(255,165,79,0.7), transparent),
+                radial-gradient(1.3px 1.3px at 12% 65%, rgba(245,130,31,0.6), transparent),
+                radial-gradient(1.5px 1.5px at 70% 85%, rgba(255,165,79,0.7), transparent),
+                radial-gradient(1.2px 1.2px at 85% 50%, rgba(245,130,31,0.55), transparent),
+                radial-gradient(1.6px 1.6px at 35% 90%, rgba(255,165,79,0.65), transparent);
+            background-size: 100% 100%;
+            animation: stars-twinkle-b 4.2s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes stars-twinkle-a { from { opacity: 0.35; } to { opacity: 1; } }
+        @keyframes stars-twinkle-b { from { opacity: 0.9; } to { opacity: 0.25; } }
+
+        .carousel-header {
+            position: relative; z-index: 2;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 15px; font-weight: 700; color: #fff;
+            padding: 0 32px; margin-bottom: 20px;
+        }
+        .carousel-header .icon { color: var(--orange-light); }
+
+        .carousel-viewport {
+            position: relative; z-index: 2;
+            perspective: 1200px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            padding: 30px 0;
+        }
+        .carousel-viewport::-webkit-scrollbar { display: none; }
+
+        .carousel-track {
+            display: flex;
+            gap: 28px;
+            padding: 0 calc(50% - 110px);
+            width: max-content;
+        }
+
+        .carousel-card {
+            position: relative;
+            flex-shrink: 0;
+            width: 220px;
+            scroll-snap-align: center;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.9);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            transform: scale(0.82) translateY(6px);
+            filter: blur(2.5px);
+            opacity: 0.55;
+            transition: transform 0.45s cubic-bezier(0.22,1,0.36,1),
+                        filter 0.45s ease,
+                        opacity 0.45s ease,
+                        box-shadow 0.45s ease;
+            will-change: transform, filter;
+        }
+
+        .carousel-card.is-center {
+            transform: scale(1.08) translateY(-6px);
+            filter: blur(0);
+            opacity: 1;
+            box-shadow: 0 25px 50px rgba(245,130,31,0.4);
+            z-index: 5;
+        }
+        .carousel-card.is-near {
+            transform: scale(0.94) translateY(0);
+            filter: blur(1px);
+            opacity: 0.85;
+            z-index: 2;
+        }
+
+        .carousel-card:hover {
+            box-shadow: 0 30px 60px rgba(245,130,31,0.45);
+        }
+
+        .carousel-card-img { width: 100%; aspect-ratio: 4/3; overflow: hidden; background: linear-gradient(135deg,#fff4ec,#ffe8d0); }
+        .carousel-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .carousel-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .carousel-img-placeholder .icon svg { width: 32px; height: 32px; }
+
+        .carousel-card-body { padding: 14px 16px 18px; }
+        .carousel-card-title { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; line-height: 1.3; }
+        .carousel-card-meta {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11.5px; color: var(--text-light); margin-bottom: 4px;
+        }
+        .carousel-card-meta .icon svg { width: 13px; height: 13px; }
+
+        .carousel-dots {
+            position: relative; z-index: 2;
+            display: flex; justify-content: center; gap: 6px; margin-top: 6px;
+        }
+        .carousel-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: rgba(245,130,31,0.35);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .carousel-dot.active { background: var(--orange-light); width: 20px; border-radius: 4px; }
+
+        @media (max-width:900px) {
+    .detail-hero-card { grid-template-columns: 1fr; }
+    .page-wrap { padding:40px; }
+    .form-grid { grid-template-columns:1fr; }
+    .hero-backdrop { padding: 20px 24px; }
+}
+        @media (max-width: 640px) {
+            .carousel-card { width: 170px; }
+            .carousel-track { padding: 0 calc(50% - 85px); }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <a href="{% url 'home' %}" class="header-brand">
+        <div class="brand-dot"></div>
+        <div>
+            <div class="brand-name">NAFTAL GPL</div>
+            <div class="brand-sub">Branche GPL</div>
+        </div>
+    </a>
+    <nav class="header-nav">
+        {% if user.is_admin_role %}
+            <a href="{% url 'admin_dashboard' %}" class="nav-link">← Espace Admin</a>
+            <a href="{% url 'admin_realisations' %}" class="nav-link active">Réalisations</a>
+            <a href="{% url 'admin_evenements' %}" class="nav-link">Événements</a>
+        {% else %}
+            <a href="{% url 'home' %}" class="nav-link">Accueil</a>
+            <a href="{% url 'realisation_list' %}" class="nav-link active">Réalisations</a>
+            <a href="{% url 'evenement_list' %}" class="nav-link">Événements</a>
+            <a href="{% url 'realisation_create' %}" class="nav-link cta">+ Nouvelle réalisation</a>
+        {% endif %}
+    </nav>
+    <a href="{% url 'logout' %}" class="user-chip">
+        <div class="user-avatar">{{ user.username|first|upper }}</div>
+        {{ user.username }}
+    </a>
+</header>
+
+<div class="page-wrap">
+    <div class="breadcrumb">
+        {% if user.is_admin_role %}
+            <a href="{% url 'admin_realisations' %}">← Retour à l'admin — Réalisations</a>
+        {% else %}
+            <a href="{% url 'realisation_list' %}">← Toutes les réalisations</a>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for m in messages %}
+            <div class="msg {{ m.tags }}">{{ m }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ═══ UNE SEULE CARTE — photo à gauche (bord à bord) + infos à droite ═══ -->
+    <div class="hero-backdrop">
+        <div class="detail-hero-card">
+            <div class="detail-hero-img-wrap">
+                {% if realisation.image %}
+                    <img src="{{ realisation.image.url }}" alt="{{ realisation.action.nom }}" class="detail-img">
+                {% else %}
+                    <div class="detail-img-placeholder">
+                        <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 15l4-4 4 4 6-6 4 4"/><circle cx="8" cy="9" r="1.5"/></svg></span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="detail-hero-info">
+                <div class="badge-row">
+                    <div class="badge">{{ realisation.get_type_support_display }}</div>
+                    <div class="statut-chip {{ realisation.statut_distribution }}">
+                        <span class="statut-dot {{ realisation.statut_distribution }}"></span>
+                        {{ realisation.statut_label }}
+                    </div>
+                </div>
+
+                <div class="info-title">{{ realisation.action.nom }}</div>
+
+                <div class="info-row">
+                    <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M14 9h1M9 13h1M14 13h1M9 17h1M14 17h1"/></svg></span>
+                    <strong>Agence :</strong>&nbsp;{{ realisation.agence.nom }}
+                </div>
+                <div class="info-row">
+                    <span class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg></span>
+                    <strong>Structure :</strong>&nbsp;{{ realisation.structure.nom }}
+                </div>
+                <div class="info-row">
+                    <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/></svg></span>
+                    <strong>Date :</strong>&nbsp;{{ realisation.date|date:"d/m/Y" }}
+                </div>
+                <div class="info-row">
+                    <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>
+                    <strong>Créé par :</strong>&nbsp;{{ realisation.cree_par.username|default:"—" }}
+                </div>
+                <div class="info-row">
+                    <span class="icon"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg></span>
+                    <strong>Total :</strong>&nbsp;{{ realisation.quantite_globale }} unités — {{ realisation.reste_global }} restant(es)
+                </div>
+
+                <table class="langs-table">
+                    <tr><th>Langue</th><th>Quantité</th><th>Distribué</th><th>Reste</th></tr>
+                    {% for rl in realisation.langues.all %}
+                    <tr>
+                        <td>{{ rl.langue.nom }}</td>
+                        <td>{{ rl.quantite }}</td>
+                        <td>{{ rl.quantite_distribuee }}</td>
+                        <td>{{ rl.reste }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                <div class="actions-row">
+                    <button class="btn-toggle edit" onclick="toggleSlide('editSection', this)">
+                        <span class="icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>
+                        Modifier
+                    </button>
+                    <button class="btn-toggle track" onclick="toggleSlide('trackSection', this)">
+                        <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg></span>
+                        Suivre l'état
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if evenements %}
+    <div class="events-carousel-section">
+        <div class="carousel-header">
+            <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/></svg></span>
+            Événements liés à « {{ realisation.action.nom }} »
+        </div>
+        <div class="carousel-viewport" id="carouselViewport">
+            <div class="carousel-track" id="carouselTrack">
+                {% for ev in evenements %}
+                <a href="{% url 'evenement_list' %}?event={{ ev.id }}" class="carousel-card" data-index="{{ forloop.counter0 }}">
+                    <div class="carousel-card-img">
+                        {% with first_img=ev.images.first %}
+                            {% if first_img %}
+                                <img src="{{ first_img.image.url }}" alt="{{ ev.titre }}">
+                            {% else %}
+                                <div class="carousel-img-placeholder">
+                                    <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div class="carousel-card-body">
+                        <div class="carousel-card-title">{{ ev.titre }}</div>
+                        <div class="carousel-card-meta">
+                            <span class="icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+                            {{ ev.lieu|default:"Lieu non précisé" }}
+                        </div>
+                        <div class="carousel-card-meta">
+                            <span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg></span>
+                            {{ ev.date_debut|date:"d/m/Y" }}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+    {% endif %}
+
+    <!-- ═══ SECTION MODIFIER (cachée par défaut) ═══ -->
+    <div class="slide-section" id="editSection">
+        <div class="slide-card">
+            <div class="section-title">
+                <span class="icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></span>
+                Modifier les informations
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="edit">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Type de support</label>
+                        <select name="type_support">
+                            {% for key, label in type_choices %}
+                                <option value="{{ key }}" {% if realisation.type_support == key %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Agence</label>
+                        <select name="agence">
+                            {% for a in agences %}
+                                <option value="{{ a.id }}" {% if realisation.agence_id == a.id %}selected{% endif %}>{{ a.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Structure</label>
+                        <select name="structure">
+                            {% for s in structures %}
+                                <option value="{{ s.id }}" {% if realisation.structure_id == s.id %}selected{% endif %}>{{ s.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" name="date" value="{{ realisation.date|date:'Y-m-d' }}">
+                    </div>
+                    <div class="form-group full">
+                        <label>Remplacer la photo (optionnel)</label>
+                        <input type="file" name="image" accept="image/*">
+                    </div>
+                </div>
+
+                {% if realisation.langues.all %}
+                <div class="section-title" style="font-size:14px;">Quantités par langue</div>
+                <table class="langs-table" style="margin-bottom:20px;">
+                    <tr><th>Langue</th><th>Quantité totale</th><th>Déjà distribué</th></tr>
+                    {% for rl in realisation.langues.all %}
+                    <tr>
+                        <td>{{ rl.langue.nom }}</td>
+                        <td><input type="number" name="langue_qte_{{ rl.id }}" value="{{ rl.quantite }}" min="{{ rl.quantite_distribuee }}"></td>
+                        <td>{{ rl.quantite_distribuee }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% endif %}
+
+                <button type="submit" class="btn-primary">Enregistrer les modifications</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ SECTION SUIVRE L'ÉTAT (cachée par défaut) ═══ -->
+    <div class="slide-section" id="trackSection">
+        <div class="slide-card">
+            <div class="section-title">
+                <span class="icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg></span>
+                Suivre l'état — Ajouter une distribution
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="distribution">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Événement associé</label>
+                        <select name="dist_evenement" required>
+                            <option value="">— Choisir un événement —</option>
+                            {% for ev in evenements %}
+                                <option value="{{ ev.id }}">{{ ev.titre }} ({{ ev.lieu|default:"lieu non précisé" }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" name="dist_date" required>
+                    </div>
+                </div>
+
+                <div class="section-title" style="font-size:14px;">Quantités à distribuer par langue</div>
+                <table class="langs-table" style="margin-bottom:20px;">
+                    <tr>
+                        <th>Langue</th><th>Total</th><th>Déjà distribué</th><th>Reste</th><th>Quantité distribuée</th>
+                    </tr>
+                    {% for rl in realisation.langues.all %}
+                    <tr>
+                        <td>{{ rl.langue.nom }}</td>
+                        <td>{{ rl.quantite }}</td>
+                        <td>{{ rl.quantite_distribuee }}</td>
+                        <td>{{ rl.reste }}</td>
+                        <td><input type="number" name="dist_qte_{{ rl.langue.id }}" min="0" max="{{ rl.reste }}" placeholder="0"></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                <button type="submit" class="btn-primary green">Enregistrer la distribution</button>
+            </form>
+
+            {% if distributions %}
+            <div class="section-title" style="font-size:14px; margin-top:32px;">Historique des distributions</div>
+            <table class="distrib-table">
+                <tr><th>Lieu</th><th>Langue</th><th>Quantité</th><th>Date</th><th>Événement</th><th></th></tr>
+                {% for d in distributions %}
+                <tr>
+                    <td>{{ d.lieu.nom }}</td>
+                    <td>{{ d.langue.nom|default:"—" }}</td>
+                    <td>{{ d.quantite }}</td>
+                    <td>{{ d.date|date:"d/m/Y" }}</td>
+                    <td>{{ d.evenement.titre|default:"—" }}</td>
+                    <td>
+                        {% if d.evenement %}
+                            <a href="{% url 'evenement_list' %}?event={{ d.evenement.id }}" class="btn-event-link">Voir →</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+                <div class="empty-note">Aucune distribution enregistrée pour le moment.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="footer-brand">NAFTAL GPL</div>
+    <div class="footer-copy">© 2026 Naftal — Branche GPL. Application interne.</div>
+    <div class="footer-user">Connecté : {{ user.username }}</div>
+</footer>
+
+<script>
+function toggleSlide(id, btn) {
+    const el = document.getElementById(id);
+    const isOpen = el.classList.contains('open');
+
+    ['editSection', 'trackSection'].forEach(otherId => {
+        if (otherId !== id) document.getElementById(otherId).classList.remove('open');
+    });
+
+    el.classList.toggle('open', !isOpen);
+    if (!isOpen) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 200);
+    }
+}
+
+/* ═══ CAROUSEL 3D — coverflow avec blur + défilement auto ═══ */
+(function initEventsCarousel() {
+    const viewport = document.getElementById('carouselViewport');
+    if (!viewport) return;
+
+    const track = document.getElementById('carouselTrack');
+    const cards = Array.from(track.querySelectorAll('.carousel-card'));
+    const dotsWrap = document.getElementById('carouselDots');
+
+    cards.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.className = 'carousel-dot';
+        dot.addEventListener('click', () => scrollToCard(i));
+        dotsWrap.appendChild(dot);
+    });
+    const dots = Array.from(dotsWrap.children);
+
+    function updateCoverflow() {
+        const viewportCenter = viewport.scrollLeft + viewport.clientWidth / 2;
+        let closestIndex = 0;
+        let closestDist = Infinity;
+
+        cards.forEach((card, i) => {
+            const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+            const dist = Math.abs(cardCenter - viewportCenter);
+            if (dist < closestDist) { closestDist = dist; closestIndex = i; }
+
+            card.classList.remove('is-center', 'is-near');
+            if (dist < card.offsetWidth * 0.4) {
+                card.classList.add('is-center');
+            } else if (dist < card.offsetWidth * 1.3) {
+                card.classList.add('is-near');
+            }
+        });
+
+        dots.forEach((d, i) => d.classList.toggle('active', i === closestIndex));
+    }
+
+    function scrollToCard(i) {
+        const card = cards[i];
+        const target = card.offsetLeft + card.offsetWidth / 2 - viewport.clientWidth / 2;
+        viewport.scrollTo({ left: target, behavior: 'smooth' });
+    }
+
+    viewport.addEventListener('scroll', () => {
+        window.requestAnimationFrame(updateCoverflow);
+    });
+
+    updateCoverflow();
+
+    let autoIndex = 0;
+    let autoTimer = null;
+    let userInteracting = false;
+
+    function startAuto() {
+        autoTimer = setInterval(() => {
+            if (userInteracting) return;
+            autoIndex = (autoIndex + 1) % cards.length;
+            scrollToCard(autoIndex);
+        }, 3200);
+    }
+
+    viewport.addEventListener('pointerdown', () => { userInteracting = true; });
+    viewport.addEventListener('pointerup', () => {
+        setTimeout(() => { userInteracting = false; }, 4000);
+    });
+    viewport.addEventListener('wheel', () => {
+        userInteracting = true;
+        clearTimeout(viewport._resumeTimeout);
+        viewport._resumeTimeout = setTimeout(() => { userInteracting = false; }, 4000);
+    });
+
+    startAuto();
+})();
+</script>
+</body>
+</html>

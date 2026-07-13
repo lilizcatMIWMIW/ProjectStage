@@ -1,0 +1,34 @@
+{% extends "gestion/admin/base_admin.html" %}
+{% block title %} — Modifier utilisateur{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-eyebrow"><a href="{% url 'admin_users' %}" style="color:var(--orange); text-decoration:none;">← Utilisateurs</a></div>
+    <h1 class="page-title">Modifier « {{ edited_user.username }} »</h1>
+</div>
+
+<div class="glass-card" style="max-width:520px;">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Nom d'utilisateur</label>
+            <input type="text" name="username" value="{{ edited_user.username }}" required>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value="{{ edited_user.email }}">
+        </div>
+        <div class="form-group">
+            <label>Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+            <input type="password" name="password" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+            <label>Rôle</label>
+            <select name="role">
+                <option value="user" {% if edited_user.role == 'user' %}selected{% endif %}>Utilisateur</option>
+                <option value="admin" {% if edited_user.role == 'admin' %}selected{% endif %}>Administrateur</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-primary">Enregistrer</button>
+    </form>
+</div>
+{% endblock %}

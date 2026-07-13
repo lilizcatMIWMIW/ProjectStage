@@ -1,0 +1,66 @@
+{% extends "gestion/admin/base_admin.html" %}
+{% block title %} — Agences & Structures{% endblock %}
+{% block extra_css %}
+<style>
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .mini-form { display:flex; gap:10px; margin-bottom:20px; }
+    .mini-form input { flex:1; padding:10px 14px; border:2px solid rgba(245,130,31,0.18); border-radius:var(--radius-sm); font-family:inherit; font-size:13.5px; outline:none; background:var(--card-bg); color:var(--text-main); }
+    .mini-form input:focus { border-color:var(--orange); }
+    .list-item { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid rgba(0,0,0,0.05); font-size:13.5px; }
+    body.dark .list-item { border-bottom:1px solid rgba(255,255,255,0.06); }
+    .list-item:last-child { border-bottom:none; }
+    .del-btn { background:none; border:none; color:var(--red); opacity:0.6; cursor:pointer; padding:4px; }
+    .del-btn:hover { opacity:1; }
+    .del-btn svg { width:15px; height:15px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-eyebrow">Listes de référence</div>
+    <h1 class="page-title">Agences &amp; Structures</h1>
+</div>
+
+<div class="two-col">
+    <div class="glass-card">
+        <h3 style="margin-bottom:16px; font-size:15px;">Agences</h3>
+        <form method="POST" class="mini-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_agence">
+            <input type="text" name="nom_agence" placeholder="Nom de la nouvelle agence" required>
+            <button type="submit" class="btn-primary">Ajouter</button>
+        </form>
+        {% for a in agences %}
+        <div class="list-item">
+            <span>{{ a.nom }}</span>
+            <form method="POST" onsubmit="return confirm('Supprimer {{ a.nom }} ?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_agence">
+                <input type="hidden" name="agence_id" value="{{ a.id }}">
+                <button type="submit" class="del-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+            </form>
+        </div>
+        {% empty %}<p style="color:var(--text-light); font-size:13px;">Aucune agence.</p>{% endfor %}
+    </div>
+
+    <div class="glass-card">
+        <h3 style="margin-bottom:16px; font-size:15px;">Structures</h3>
+        <form method="POST" class="mini-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_structure">
+            <input type="text" name="nom_structure" placeholder="Nom de la nouvelle structure" required>
+            <button type="submit" class="btn-primary">Ajouter</button>
+        </form>
+        {% for s in structures %}
+        <div class="list-item">
+            <span>{{ s.nom }}</span>
+            <form method="POST" onsubmit="return confirm('Supprimer {{ s.nom }} ?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_structure">
+                <input type="hidden" name="structure_id" value="{{ s.id }}">
+                <button type="submit" class="del-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+            </form>
+        </div>
+        {% empty %}<p style="color:var(--text-light); font-size:13px;">Aucune structure.</p>{% endfor %}
+    </div>
+</div>
+{% endblock %}

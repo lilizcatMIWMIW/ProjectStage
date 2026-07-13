@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Naftal GPL</title>
+    <style>
+        :root {
+            --naftal-green: #0a6e3a;
+            --naftal-green-dark: #064d28;
+            --naftal-orange: #f5821f;
+            --bg-light: #f4f6f5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--bg-light);
+        }
+
+        .topbar {
+            background: var(--naftal-green);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            border-bottom: 4px solid var(--naftal-orange);
+        }
+
+        .topbar h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .topbar a {
+            color: #fff;
+            text-decoration: none;
+            background: rgba(255,255,255,0.15);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .topbar a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .content {
+            padding: 40px 32px;
+        }
+
+        .content h2 {
+            color: var(--naftal-green-dark);
+            margin-bottom: 8px;
+        }
+
+        .content p {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>NAFTAL GPL — Gestion des supports</h1>
+        <a href="{% url 'logout' %}">Déconnexion</a>
+    </div>
+    <div class="content">
+        <h2>Bienvenue, {{ user.username }}</h2>
+        <p>Votre tableau de bord est en cours de construction.</p>
+    </div>
+</body>
+</html>

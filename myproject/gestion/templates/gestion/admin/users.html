@@ -1,0 +1,119 @@
+{% extends "gestion/admin/base_admin.html" %}
+{% block title %} — Utilisateurs{% endblock %}
+{% block extra_css %}
+<style>
+    .page-header-row { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; }
+    .users-table { width:100%; border-collapse:collapse; }
+    .users-table th { text-align:left; padding:10px 14px; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light); border-bottom:2px solid rgba(0,0,0,0.06); }
+    body.dark .users-table th { border-bottom:2px solid rgba(255,255,255,0.08); }
+    .users-table td { padding:14px; font-size:13.5px; border-bottom:1px solid rgba(0,0,0,0.04); }
+    body.dark .users-table td { border-bottom:1px solid rgba(255,255,255,0.05); }
+    .user-cell { display:flex; align-items:center; gap:10px; }
+    .user-avatar-sm { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--orange),var(--orange-light)); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:12px; overflow:hidden; }
+    .user-avatar-sm img { width:100%; height:100%; object-fit:cover; }
+    .role-tag { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; }
+    .role-tag.admin { background:rgba(245,130,31,0.12); color:var(--orange); }
+    .role-tag.user { background:rgba(0,0,0,0.06); color:var(--text-mid); }
+    body.dark .role-tag.user { background:rgba(255,255,255,0.08); }
+    .row-actions { display:flex; gap:8px; }
+    .btn-icon-sm { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; text-decoration:none; border:none; cursor:pointer; transition:all 0.2s; }
+    .btn-icon-sm.edit { background:var(--orange-pale); color:var(--orange); }
+    .btn-icon-sm.edit:hover { background:var(--orange); color:#fff; }
+    .btn-icon-sm.del { background:rgba(220,38,38,0.08); color:var(--red); }
+    .btn-icon-sm.del:hover { background:var(--red); color:#fff; }
+    .btn-icon-sm svg { width:15px; height:15px; }
+
+    /* Modal création */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:2000; opacity:0; visibility:hidden; transition:opacity 0.25s; }
+    .modal-overlay.open { opacity:1; visibility:visible; }
+    .modal-box { background:var(--card-bg); border-radius:var(--radius-lg); padding:28px; width:min(420px, 90vw); transform:scale(0.92); transition:transform 0.25s; }
+    .modal-overlay.open .modal-box { transform:scale(1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header-row">
+    <div class="page-header" style="margin-bottom:0;">
+        <div class="page-eyebrow">Gestion des accès</div>
+        <h1 class="page-title">Utilisateurs</h1>
+    </div>
+    <button class="btn-primary" onclick="document.getElementById('createModal').classList.add('open')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Nouvel utilisateur
+    </button>
+</div>
+
+<div class="glass-card">
+    <form method="GET" style="display:flex; gap:10px; margin-bottom:20px;">
+        <input type="text" name="q" placeholder="🔍 Rechercher par nom d'utilisateur ou email..." value="{{ query }}"
+               style="flex:1; padding:11px 16px; border:2px solid rgba(245,130,31,0.18); border-radius:var(--radius-md); font-family:inherit; font-size:14px; outline:none; background:var(--card-bg); color:var(--text-main);">
+        <button type="submit" class="btn-primary">Rechercher</button>
+        {% if query %}<a href="{% url 'admin_users' %}" class="btn-primary btn-danger">Effacer</a>{% endif %}
+    </form>
+
+    <table class="users-table">
+        <tr><th>Utilisateur</th><th>Email</th><th>Rôle</th><th></th></tr>
+        {% for u in users %}
+        <tr>
+            <td>
+                <div class="user-cell">
+                    <div class="user-avatar-sm">
+                        {% if u.photo %}<img src="{{ u.photo.url }}">{% else %}{{ u.username|first|upper }}{% endif %}
+                    </div>
+                    {{ u.username }}
+                </div>
+            </td>
+            <td>{{ u.email|default:"—" }}</td>
+            <td><span class="role-tag {{ u.role }}">{{ u.get_role_display }}</span></td>
+            <td>
+                <div class="row-actions">
+                    <a href="{% url 'admin_user_edit' u.pk %}" class="btn-icon-sm edit" title="Modifier">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                    </a>
+                    {% if u.id != user.id %}
+                    <form method="POST" onsubmit="return confirm('Supprimer {{ u.username }} ?');" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="user_id" value="{{ u.id }}">
+                        <button type="submit" class="btn-icon-sm del" title="Supprimer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<div class="modal-overlay" id="createModal" onclick="if(event.target===this) this.classList.remove('open')">
+    <div class="modal-box">
+        <h3 style="margin-bottom:20px;">Créer un utilisateur</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="form-group">
+                <label>Nom d'utilisateur</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label>Rôle</label>
+                <select name="role">
+                    <option value="user">Utilisateur</option>
+                    <option value="admin">Administrateur</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">Créer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

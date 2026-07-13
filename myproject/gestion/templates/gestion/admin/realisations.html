@@ -1,0 +1,76 @@
+{% extends "gestion/admin/base_admin.html" %}
+{% block title %} — Réalisations{% endblock %}
+{% block extra_css %}
+<style>
+    .search-bar { display:flex; gap:10px; margin-bottom:20px; }
+    .search-bar input {
+        flex:1; padding:11px 16px; border:2px solid rgba(245,130,31,0.18); border-radius:var(--radius-md);
+        font-family:inherit; font-size:14px; outline:none; background:var(--card-bg); color:var(--text-main);
+    }
+    .search-bar input:focus { border-color:var(--orange); }
+    .data-table { width:100%; border-collapse:collapse; }
+    .data-table th { text-align:left; padding:10px 14px; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-light); border-bottom:2px solid rgba(0,0,0,0.06); }
+    body.dark .data-table th { border-bottom:2px solid rgba(255,255,255,0.08); }
+    .data-table td { padding:14px; font-size:13.5px; border-bottom:1px solid rgba(0,0,0,0.04); }
+    body.dark .data-table td { border-bottom:1px solid rgba(255,255,255,0.05); }
+    .statut-chip { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+    .statut-chip.rouge { background:rgba(220,38,38,0.08); color:var(--red); }
+    .statut-chip.orange { background:rgba(245,130,31,0.12); color:var(--orange); }
+    .statut-chip.vert { background:rgba(10,110,58,0.1); color:var(--green); }
+    .statut-dot { width:6px; height:6px; border-radius:50%; }
+    .statut-dot.rouge { background:var(--red); } .statut-dot.orange { background:var(--orange); } .statut-dot.vert { background:var(--green); }
+    .row-actions { display:flex; gap:8px; }
+    .btn-icon-sm { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; text-decoration:none; border:none; cursor:pointer; transition:all 0.2s; }
+    .btn-icon-sm.edit { background:var(--orange-pale); color:var(--orange); }
+    .btn-icon-sm.edit:hover { background:var(--orange); color:#fff; }
+    .btn-icon-sm.del { background:rgba(220,38,38,0.08); color:var(--red); }
+    .btn-icon-sm.del:hover { background:var(--red); color:#fff; }
+    .btn-icon-sm svg { width:15px; height:15px; }
+    .empty-note { color:var(--text-light); font-size:13px; padding:30px 0; text-align:center; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-eyebrow">Gestion complète</div>
+    <h1 class="page-title">Réalisations</h1>
+</div>
+
+<div class="glass-card">
+    <form method="GET" class="search-bar">
+        <input type="text" name="q" placeholder="🔍 Rechercher par action, type de support, agence, structure..." value="{{ query }}">
+        <button type="submit" class="btn-primary">Rechercher</button>
+        {% if query %}<a href="{% url 'admin_realisations' %}" class="btn-primary btn-danger">Effacer</a>{% endif %}
+    </form>
+
+    <table class="data-table">
+        <tr><th>Action</th><th>Type</th><th>Agence</th><th>Structure</th><th>Date</th><th>Statut</th><th></th></tr>
+        {% for r in realisations %}
+        <tr>
+            <td>{{ r.action.nom }}</td>
+            <td>{{ r.get_type_support_display }}</td>
+            <td>{{ r.agence.nom }}</td>
+            <td>{{ r.structure.nom }}</td>
+            <td>{{ r.date|date:"d/m/Y" }}</td>
+            <td><span class="statut-chip {{ r.statut_distribution }}"><span class="statut-dot {{ r.statut_distribution }}"></span>{{ r.statut_label }}</span></td>
+            <td>
+                <div class="row-actions">
+                    <a href="{% url 'realisation_detail' r.pk %}" class="btn-icon-sm edit" title="Voir / Modifier">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                    </a>
+                    <form method="POST" onsubmit="return confirm('Supprimer cette réalisation ?');" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="realisation_id" value="{{ r.id }}">
+                        <button type="submit" class="btn-icon-sm del" title="Supprimer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-note">Aucune réalisation trouvée.</div></td></tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

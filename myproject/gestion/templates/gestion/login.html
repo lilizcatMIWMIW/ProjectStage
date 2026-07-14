@@ -21,21 +21,18 @@
         /* ═══ HEADER ═══ */
         .header {
             position:fixed; top:0; left:0; right:0; z-index:1000; padding:0 56px; height:76px;
-            display:flex; align-items:center; justify-content:space-between;
+            display:flex; align-items:center;
             background: rgba(20,15,10,0.35);
             backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
             border-bottom: 1px solid rgba(255,255,255,0.08);
         }
+        .header-brand-group { display:flex; align-items:center; gap:16px; }
         .header-logo { height:36px; display:block; }
         .header-logo-fallback { color:#fff; font-weight:800; font-size:18px; letter-spacing:-0.5px; }
-        .btn-login-top {
-            display:inline-flex; align-items:center; gap:8px; padding:11px 24px;
-            background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); border:1px solid rgba(255,255,255,0.25);
-            color:#fff; border-radius:30px; font-size:13.5px; font-weight:600; cursor:pointer; text-decoration:none;
-            transition: all 0.3s ease;
+        .header-tagline {
+            color: rgba(255,255,255,0.55); font-size:13px; font-weight:500; letter-spacing:0.2px;
+            padding-left:16px; border-left:1px solid rgba(255,255,255,0.15);
         }
-        .btn-login-top:hover { background:var(--orange); border-color:var(--orange); transform:translateY(-2px); box-shadow:0 8px 24px rgba(245,130,31,0.4); }
-        .btn-login-top .icon svg { width:15px; height:15px; }
 
         /* ═══ HERO ═══ */
         .hero {
@@ -152,44 +149,49 @@
             .features-grid { grid-template-columns:repeat(2,1fr); }
         }
 
-        /* ═══ LOGIN SECTION (au-dessus du footer) ═══ */
+        /* ═══ LOGIN SECTION — même fond que la carte, sans carte blanche, champs pleine largeur ═══ */
         .login-section {
-            background: var(--orange-pale);
-            padding: 90px 40px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #24160d 100%);
+            padding: 110px 40px;
+            position: relative;
+            overflow: hidden;
             display:flex; justify-content:center;
         }
-        .login-glass-card {
-            width: min(420px, 100%);
-            background: rgba(255, 255, 255, 0.55);
-            border-radius: var(--radius-lg);
-            box-shadow: 0 20px 60px rgba(245,130,31,0.18);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.7);
-            padding: 42px 38px;
+        .login-section::before {
+            content:''; position:absolute; bottom:-120px; right:-100px; width:420px; height:420px; border-radius:50%;
+            background: radial-gradient(circle, rgba(245,130,31,0.14), transparent 70%);
+        }
+        .login-inner {
+            position: relative; z-index: 2;
+            width: min(560px, 100%);
+            text-align: center;
         }
         .login-card-eyebrow {
-            display:inline-flex; align-items:center; gap:8px; color:var(--orange);
-            font-size:11.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:8px;
+            display:inline-flex; align-items:center; gap:8px; color:var(--orange-light);
+            font-size:11.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px;
         }
-        .login-card-title { font-size:24px; font-weight:800; color:var(--text-dark); margin-bottom:26px; letter-spacing:-0.5px; }
+        .login-card-title { font-size:30px; font-weight:800; color:#fff; margin-bottom:36px; letter-spacing:-0.8px; }
 
-        .messages { margin-bottom:18px; }
-        .msg { padding:11px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; background:rgba(220,38,38,0.08); color:#dc2626; }
+        .messages { margin-bottom:20px; text-align:left; }
+        .msg { padding:11px 16px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; background:rgba(220,38,38,0.15); color:#ff8080; border:1px solid rgba(220,38,38,0.3); }
 
-        .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:18px; }
-        .form-group label { font-size:12px; font-weight:600; color:var(--text-mid); }
+        .login-form { text-align:left; }
+        .form-group { display:flex; flex-direction:column; gap:8px; margin-bottom:22px; }
+        .form-group label { font-size:12.5px; font-weight:600; color:rgba(255,255,255,0.6); letter-spacing:0.3px; }
         .form-group input {
-            padding:13px 16px; border:2px solid rgba(245,130,31,0.2); border-radius:var(--radius-sm);
-            font-family:inherit; font-size:14.5px; outline:none; background:#fff; transition:border-color 0.2s;
+            width:100%; padding:16px 18px; border:1.5px solid rgba(255,255,255,0.15); border-radius:var(--radius-sm);
+            font-family:inherit; font-size:15px; outline:none; background:rgba(255,255,255,0.06); color:#fff;
+            transition: all 0.25s;
         }
-        .form-group input:focus { border-color:var(--orange); }
+        .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-group input:focus { border-color:var(--orange); background: rgba(255,255,255,0.1); box-shadow: 0 0 0 4px rgba(245,130,31,0.15); }
 
         .btn-submit {
-            width:100%; padding:14px; background:var(--orange); color:#fff; border:none; border-radius:var(--radius-sm);
-            font-size:14.5px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.25s;
-            box-shadow: 0 8px 24px rgba(245,130,31,0.35);
+            width:100%; padding:16px; background:var(--orange); color:#fff; border:none; border-radius:var(--radius-sm);
+            font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.25s;
+            box-shadow: 0 10px 28px rgba(245,130,31,0.35); margin-top:6px;
         }
-        .btn-submit:hover { background:#e0711a; transform:translateY(-2px); box-shadow:0 12px 32px rgba(245,130,31,0.45); }
+        .btn-submit:hover { background:#e0711a; transform:translateY(-2px); box-shadow:0 14px 36px rgba(245,130,31,0.45); }
 
         /* ═══ FOOTER ═══ */
         .footer {
@@ -198,7 +200,7 @@
         .footer-brand { color:var(--orange-light); font-weight:800; font-size:15px; }
         .footer-copy { color:rgba(255,255,255,0.3); font-size:12.5px; }
 
-        /* ═══ BOUTON FLOTTANT RETOUR CONNEXION ═══ */
+        /* ═══ BOUTON FLOTTANT — seul point d'accès à la connexion ═══ */
         .fab-login {
             position: fixed; bottom: 28px; right: 28px; z-index: 900;
             display:flex; align-items:center; gap:9px; padding:14px 22px;
@@ -208,20 +210,22 @@
         }
         .fab-login:hover { transform: translateY(-4px); box-shadow:0 16px 40px rgba(245,130,31,0.55); }
         .fab-login .icon svg { width:15px; height:15px; }
+
+        @media (max-width: 500px) {
+            .header-tagline { display:none; }
+        }
     </style>
 </head>
 <body>
 
-<!-- ═══ HEADER ═══ -->
+<!-- ═══ HEADER — logo + tagline, plus de bouton de connexion ═══ -->
 <header class="header">
-    <img src="/static/img/logo.png" alt="Naftal GPL" class="header-logo"
-         onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block';">
-    <div id="logoFallback" class="header-logo-fallback" style="display:none;">NAFTAL GPL</div>
-
-    <a href="#login" class="btn-login-top">
-        <span class="icon"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></span>
-        Se connecter
-    </a>
+    <div class="header-brand-group">
+        <img src="/static/img/logo.png" alt="Naftal GPL" class="header-logo"
+             onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block';">
+        <div id="logoFallback" class="header-logo-fallback" style="display:none;">NAFTAL GPL</div>
+        <span class="header-tagline">Gestion des Supports GPL</span>
+    </div>
 </header>
 
 <!-- ═══ HERO — dépliants animés ═══ -->
@@ -290,9 +294,9 @@
     </div>
 </section>
 
-<!-- ═══ LOGIN ═══ -->
+<!-- ═══ LOGIN — sans carte blanche, champs pleine largeur, même fond que la carte ═══ -->
 <section class="login-section" id="login">
-    <div class="login-glass-card">
+    <div class="login-inner">
         <div class="login-card-eyebrow">Accès réservé</div>
         <div class="login-card-title">Connexion</div>
 
@@ -302,15 +306,15 @@
         </div>
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" class="login-form">
             {% csrf_token %}
             <div class="form-group">
                 <label>Nom d'utilisateur</label>
-                <input type="text" name="username" required autofocus>
+                <input type="text" name="username" required autofocus placeholder="Votre identifiant">
             </div>
             <div class="form-group">
                 <label>Mot de passe</label>
-                <input type="password" name="password" required>
+                <input type="password" name="password" required placeholder="Votre mot de passe">
             </div>
             <button type="submit" class="btn-submit">Se connecter</button>
         </form>
@@ -323,7 +327,7 @@
     <div class="footer-copy">© 2026 Naftal — Branche GPL. Application interne.</div>
 </footer>
 
-<!-- ═══ BOUTON FLOTTANT ═══ -->
+<!-- ═══ BOUTON FLOTTANT — seul accès à la connexion ═══ -->
 <a href="#login" class="fab-login">
     <span class="icon"><svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg></span>
     Connexion

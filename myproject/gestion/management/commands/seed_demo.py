@@ -84,6 +84,7 @@ class Command(BaseCommand):
         structure, _ = Structure.objects.get_or_create(nom="Direction Réseau")
         langue_ar, _ = Langue.objects.get_or_create(nom="Arabe")
         langue_fr, _ = Langue.objects.get_or_create(nom="Français")
+        langue_en, _ = Langue.objects.get_or_create(nom="Anglais")
         lieu_boudouaou, _ = Lieu.objects.get_or_create(nom="Station Boudouaou", defaults={'type_lieu': 'station'})
         lieu_reghaia, _ = Lieu.objects.get_or_create(nom="Station Réghaïa", defaults={'type_lieu': 'station'})
 
@@ -124,15 +125,16 @@ class Command(BaseCommand):
                     'longitude': ev_data['lon'],
                 }
             )
-            if created:
+            # Backfill : ajoute les photos meme si l'evenement existait deja sans photos
+            if not evenement.images.exists():
                 for j in range(ev_data['nb_photos']):
                     nom_fichier = next(cycle_evt)
                     contenu = charger_image_statique(nom_fichier) or generer_image_secours(ev_data['titre'], index=i + j)
                     img_ev = EvenementImage(evenement=evenement, ordre=j)
                     img_ev.image.save(f"evenement_{i}_{j}_{nom_fichier}", contenu, save=True)
-                self.stdout.write(self.style.SUCCESS(f"Evenement '{ev_data['titre']}' cree ({ev_data['nb_photos']} photo(s), geolocalise)."))
+                self.stdout.write(self.style.SUCCESS(f"Evenement '{ev_data['titre']}' -> {ev_data['nb_photos']} photo(s) ajoutee(s)."))
 
-        # -- Realisations --
+        # -- Realisations (liste elargie) --
         realisations_a_creer = [
             {'action': action_ramadan, 'type_support': 'depliant', 'titre_photo': "Dépliant Horaires Ramadan",
              'langues': {langue_ar: 1000, langue_fr: 800}, 'distribution': (lieu_boudouaou, langue_ar, 350)},
@@ -140,8 +142,14 @@ class Command(BaseCommand):
              'langues': {langue_ar: 500}, 'distribution': (lieu_boudouaou, langue_ar, 480)},
             {'action': action_securite, 'type_support': 'panneau', 'titre_photo': "Panneau Sécurité Routière",
              'langues': {langue_fr: 300}, 'distribution': None},
+            {'action': action_securite, 'type_support': 'prospectus', 'titre_photo': "Prospectus Code de la Route",
+             'langues': {langue_ar: 400, langue_fr: 400}, 'distribution': (lieu_boudouaou, langue_fr, 150)},
             {'action': action_portes, 'type_support': 'guide', 'titre_photo': "Guide Journées Portes Ouvertes",
              'langues': {langue_ar: 600, langue_fr: 600}, 'distribution': (lieu_reghaia, langue_fr, 200)},
+            {'action': action_portes, 'type_support': 'affiche', 'titre_photo': "Affiche Portes Ouvertes GPL",
+             'langues': {langue_fr: 350, langue_en: 150}, 'distribution': None},
+            {'action': action_ramadan, 'type_support': 'guide', 'titre_photo': "Guide Sécurité Ramadan",
+             'langues': {langue_ar: 700}, 'distribution': (lieu_reghaia, langue_ar, 100)},
         ]
 
         for i, r_data in enumerate(realisations_a_creer):
@@ -149,11 +157,14 @@ class Command(BaseCommand):
                 action=r_data['action'], agence=agence, structure=structure, type_support=r_data['type_support'],
                 defaults={'date': timezone.now().date(), 'cree_par': admin_user}
             )
-            if created:
+            # Backfill : ajoute la photo/langues/distribution meme si la ligne existait deja sans photo
+            if not realisation.image:
                 nom_fichier = next(cycle_real)
                 contenu = charger_image_statique(nom_fichier) or generer_image_secours(r_data['titre_photo'], index=i)
                 realisation.image.save(f"realisation_{i}_{nom_fichier}", contenu, save=True)
+                self.stdout.write(self.style.SUCCESS(f"Realisation '{r_data['titre_photo']}' -> photo ajoutee."))
 
+            if created:
                 for langue, quantite in r_data['langues'].items():
                     RealisationLangue.objects.create(realisation=realisation, langue=langue, quantite=quantite)
 
@@ -163,6 +174,5 @@ class Command(BaseCommand):
                         realisation=realisation, lieu=lieu_d, langue=langue_d,
                         quantite=quantite_d, date=timezone.now().date(), cree_par=admin_user,
                     )
-                self.stdout.write(self.style.SUCCESS(f"Realisation '{r_data['titre_photo']}' creee."))
 
-        self.stdout.write(self.style.SUCCESS("Seed termine : 3 actions, 5 evenements geolocalises, 4 realisations, photos reelles si disponibles."))
+        self.stdout.write(self.style.SUCCESS("Seed termine."))

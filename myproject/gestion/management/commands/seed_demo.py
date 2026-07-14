@@ -24,10 +24,11 @@ IMAGES_REALISATIONS = ['r1.jpg', 'r2.jpg', 'r3.jpg', 'r4.jpg']
 IMAGES_EVENEMENTS = ['e1.jpg', 'e2.jpg', 'e3.jpg']
 
 
-def charger_image_statique(nom_relatif):
-    """Cherche un fichier sous static/img/demo/... et retourne son contenu en ContentFile.
+def charger_image_statique(sous_dossier, nom_relatif):
+    """Cherche un fichier sous static/img/demo/<sous_dossier>/... et retourne son contenu en ContentFile.
+    sous_dossier vaut 'realisations' ou 'evenements'.
     Retourne None si le fichier n'existe pas encore (fallback vers une image generee)."""
-    chemin = find_static(f"img/demo/{nom_relatif}")
+    chemin = find_static(f"img/demo/{sous_dossier}/{nom_relatif}")
     if not chemin:
         return None
     with open(chemin, 'rb') as f:
@@ -129,7 +130,7 @@ class Command(BaseCommand):
             if not evenement.images.exists():
                 for j in range(ev_data['nb_photos']):
                     nom_fichier = next(cycle_evt)
-                    contenu = charger_image_statique(nom_fichier) or generer_image_secours(ev_data['titre'], index=i + j)
+                    contenu = charger_image_statique('evenements', nom_fichier) or generer_image_secours(ev_data['titre'], index=i + j)
                     img_ev = EvenementImage(evenement=evenement, ordre=j)
                     img_ev.image.save(f"evenement_{i}_{j}_{nom_fichier}", contenu, save=True)
                 self.stdout.write(self.style.SUCCESS(f"Evenement '{ev_data['titre']}' -> {ev_data['nb_photos']} photo(s) ajoutee(s)."))
@@ -160,7 +161,7 @@ class Command(BaseCommand):
             # Backfill : ajoute la photo/langues/distribution meme si la ligne existait deja sans photo
             if not realisation.image:
                 nom_fichier = next(cycle_real)
-                contenu = charger_image_statique(nom_fichier) or generer_image_secours(r_data['titre_photo'], index=i)
+                contenu = charger_image_statique('realisations', nom_fichier) or generer_image_secours(r_data['titre_photo'], index=i)
                 realisation.image.save(f"realisation_{i}_{nom_fichier}", contenu, save=True)
                 self.stdout.write(self.style.SUCCESS(f"Realisation '{r_data['titre_photo']}' -> photo ajoutee."))
 
